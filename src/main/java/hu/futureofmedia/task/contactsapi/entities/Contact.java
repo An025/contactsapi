@@ -11,7 +11,7 @@ import java.util.Objects;
 @Table(name="contact")
 public class Contact {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String lastname;
@@ -36,6 +36,8 @@ public class Contact {
     private LocalDateTime lastModified;
 
     public Contact() {
+        this.createDate = LocalDateTime.now();
+        this.lastModified = LocalDateTime.now();
     }
 
     public Contact(Long id,String lastname, String firstname, String email, String telephonenumber, String comment, Company company, Status status, LocalDateTime createDate, LocalDateTime lastModified) {
