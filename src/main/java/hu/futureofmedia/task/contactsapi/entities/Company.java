@@ -1,5 +1,7 @@
 package hu.futureofmedia.task.contactsapi.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,6 +13,7 @@ public class Company {
     private Long id;
     private String name;
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Contact> contacts = new HashSet<>();
 
     public Company() {
