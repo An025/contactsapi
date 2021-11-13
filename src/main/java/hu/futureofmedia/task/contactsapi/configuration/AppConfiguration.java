@@ -20,12 +20,17 @@ import java.util.Set;
 public class AppConfiguration {
 
     @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+
+    @Bean
     @Profile("production")
     CommandLineRunner commandLineRunner(ContactRepository contactRepository, CompanyRepository companyRepository) {
         return args -> {
             List<Company> companys = companyRepository.findAll();
             Company company1 = companys.get(0);
-
+//
             Contact contact1 = new Contact();
             contact1.setFirstname("Béla");
             contact1.setLastname("Tóth");
@@ -37,6 +42,27 @@ public class AppConfiguration {
             contact1.setLastModified(LocalDateTime.now());
             contactRepository.save(contact1);
 
+            Contact contact2 = new Contact();
+            contact2.setFirstname("Lili");
+            contact2.setLastname("Takács");
+            contact2.setEmail("lili.takacs@gmail.com");
+            contact2.setTelephonenumber("06101113333");
+            contact2.setCompany(company1);
+            contact2.setStatus(Status.ACTIVE);
+            contact2.setCreateDate(LocalDateTime.now());
+            contact2.setLastModified(LocalDateTime.now());
+            contactRepository.save(contact2);
+
+            Contact contact3 = new Contact();
+            contact3.setFirstname("László");
+            contact3.setLastname("Szakál");
+            contact3.setEmail("laszlo.szakal@gmail.com");
+            contact3.setTelephonenumber("06101113333");
+            contact3.setCompany(company1);
+            contact3.setStatus(Status.DELETED);
+            contact3.setCreateDate(LocalDateTime.now());
+            contact3.setLastModified(LocalDateTime.now());
+            contactRepository.save(contact3);
 
         };
     }
