@@ -2,7 +2,6 @@ package hu.futureofmedia.task.contactsapi.service;
 
 import hu.futureofmedia.task.contactsapi.entities.*;
 
-import hu.futureofmedia.task.contactsapi.repositories.CompanyRepository;
 import hu.futureofmedia.task.contactsapi.repositories.ContactRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +56,22 @@ public class ContactService {
         return companyDTO;
     }
 
-    public Contact addContact(Contact contact){
+    public Contact addContact(ContactSaveDTO contactSaveDTO, Company company){
+        Contact contact = convertContact(contactSaveDTO, company);
+
+        contact.setStatus(Status.ACTIVE);
         return contactRepository.save(contact);
+    }
+
+    public Contact convertContact(ContactSaveDTO contactSaveDTO, Company company){
+        Contact contact = new Contact();
+        contact.setLastname(contactSaveDTO.getLastname());
+        contact.setFirstname(contactSaveDTO.getFirstname());
+        contact.setEmail(contactSaveDTO.getTelephonenumber());
+        contact.setTelephonenumber(contactSaveDTO.getTelephonenumber());
+        contact.setComment(contactSaveDTO.getComment());
+        contact.setCompany(company);
+        return contact;
     }
 
     public Contact getSelectedContact(Long contactId) {

@@ -1,9 +1,10 @@
 package hu.futureofmedia.task.contactsapi.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sun.xml.bind.v2.TODO;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -14,21 +15,24 @@ public class Contact {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty(message = "Lastname may not be empty")
     private String lastname;
+
+    @NotEmpty(message = "Firstname may not be empty")
     private String firstname;
 
-    @Email(message= "Email should be valid")
+    @NotEmpty(message = "Email may not be empty")
     private String email;
 
     //TODO validaate phonenumber with Libphonenumber
     private String telephonenumber;
+
     private String comment;
 
     @JoinColumn(name = "company_id", referencedColumnName = "id")
     @ManyToOne
     private Company company;
 
-    @Column(name = "status_id")
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -146,15 +150,7 @@ public class Contact {
     public String toString() {
         return "Contact{" +
                 "id=" + id +
-                ", lastname='" + lastname + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", email='" + email + '\'' +
-                ", telephonenumber='" + telephonenumber + '\'' +
-                ", comment='" + comment + '\'' +
-                ", company=" + company +
-                ", status=" + status +
-                ", createDate=" + createDate +
-                ", lastModified=" + lastModified +
+
                 '}';
     }
 }

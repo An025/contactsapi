@@ -31,8 +31,9 @@ public class ContacController {
     private Logger logger = LoggerFactory.getLogger(ContactService.class);
 
     @Autowired
-    public ContacController(ContactService contactService){
+    public ContacController(ContactService contactService, CompanyService companyService){
         this.contactService = contactService;
+        this.companyService = companyService;
     }
 
     //List pageNo 10 active contacts
