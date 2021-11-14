@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -27,52 +28,68 @@ public class ContactService {
     }
 
 
-
     public Page<ContactDTO> getContacts(Integer pageNo) {
         Pageable paging = PageRequest.of(pageNo, 10, Sort.by("lastname"));
             Page<Contact> contactPage = contactRepository.findContactByStatus(Status.ACTIVE, paging);
 
-            final Page<ContactDTO> contactDtoPage = contactPage.map(this::convertToContactDto);
-            return contactDtoPage;
+            return contactPage.map(this::convertContactToContactDto);
         };
 
 
-    private ContactDTO convertToContactDto(final Contact contact) {
+    private ContactDTO convertContactToContactDto(final Contact contact) {
         final ContactDTO contactDto = new ContactDTO(
                 contact.getId(),
                 contact.getFirstname(),
                 contact.getLastname(),
                 contact.getEmail(),
-                convertToCompanyDto(contact.getCompany()),
+                convertCompanyToCompanyDTO(contact.getCompany()),
                 contact.getTelephonenumber()
         );
         return contactDto;
     }
 
-    private CompanyDTO convertToCompanyDto(final Company company) {
+    private CompanyDTO convertCompanyToCompanyDTO(final Company company) {
         final CompanyDTO companyDTO = new CompanyDTO(
                 company.getName()
         );
         return companyDTO;
     }
 
-    public Contact addContact(ContactSaveDTO contactSaveDTO, Company company){
-        Contact contact = convertContact(contactSaveDTO, company);
 
+    public ResponseEntity<String> addContact(ContactSaveDTO contactSaveDTO, Company company){
+        Contact contact = convertContactSaveDTOToContact(contactSaveDTO, company);
+        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+        boolean validEmail = patternMatches(contact.getEmail(),regex);
+
+        if(!validEmail){
+            return new ResponseEntity<>("Not valid email", HttpStatus.FORBIDDEN);
+        }
         contact.setStatus(Status.ACTIVE);
-        return contactRepository.save(contact);
+        contactRepository.save(contact);
+        return new ResponseEntity<>("Save contact to database", HttpStatus.OK);
     }
 
-    public Contact convertContact(ContactSaveDTO contactSaveDTO, Company company){
+
+    private Contact convertContactSaveDTOToContact(ContactSaveDTO contactSaveDTO, Company company) {
         Contact contact = new Contact();
         contact.setLastname(contactSaveDTO.getLastname());
         contact.setFirstname(contactSaveDTO.getFirstname());
-        contact.setEmail(contactSaveDTO.getTelephonenumber());
+        contact.setEmail(contactSaveDTO.getEmail());
         contact.setTelephonenumber(contactSaveDTO.getTelephonenumber());
         contact.setComment(contactSaveDTO.getComment());
         contact.setCompany(company);
         return contact;
     }
+
+
+    //Check Email validation
+    public static boolean patternMatches(String emailAddress, String regexPattern) {
+        return Pattern.compile(regexPattern)
+                .matcher(emailAddress)
+                .matches();
+    }
+
+
 
     public Contact getSelectedContact(Long contactId) {
         Optional<Contact> contactOptional = contactRepository.findById(contactId);
@@ -82,6 +99,7 @@ public class ContactService {
             throw new IllegalArgumentException("Not found contact: " + contactId);
         }
     }
+
 
     public ResponseEntity<String> deleteContact(Long contactId) {
         boolean exists = contactRepository.existsById(contactId);

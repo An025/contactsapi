@@ -59,15 +59,14 @@ public class ContacController {
     @PostMapping(path="add")
     public ResponseEntity<String> addContact(@Valid @RequestBody ContactSaveDTO contactSaveDTO, Errors errors){
         if(errors.hasErrors()){
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Field(s) not empty",HttpStatus.FORBIDDEN);
         }
 
         Long companyId = Long.parseLong(contactSaveDTO.getCompany());
         Company company = companyService.getCompany(companyId);
         if(company == null){
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Company doesn't exists",HttpStatus.FORBIDDEN);
         }
-        contactService.addContact(contactSaveDTO, company);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return contactService.addContact(contactSaveDTO, company);
     }
 }
