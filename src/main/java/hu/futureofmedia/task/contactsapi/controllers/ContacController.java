@@ -1,7 +1,10 @@
 package hu.futureofmedia.task.contactsapi.controllers;
 
+import hu.futureofmedia.task.contactsapi.entities.Company;
 import hu.futureofmedia.task.contactsapi.entities.Contact;
 import hu.futureofmedia.task.contactsapi.entities.ContactDTO;
+import hu.futureofmedia.task.contactsapi.entities.ContactSaveDTO;
+import hu.futureofmedia.task.contactsapi.service.CompanyService;
 import hu.futureofmedia.task.contactsapi.service.ContactService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -10,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
 
 
 @RestController
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class ContacController {
 
     private final ContactService contactService;
+    private final CompanyService companyService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -50,7 +56,17 @@ public class ContacController {
     }
 
     @PostMapping(path="add")
-    public ResponseEntity<Contact> addContact(@RequestBody Contact contact){
-        return new ResponseEntity<>(contactService.addContact(contact), HttpStatus.OK);
+    public ResponseEntity<String> addContact(@Valid @RequestBody ContactSaveDTO contactSaveDTO, Errors errors){
+        if(errors.hasErrors()){
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        Long companyId = Long.parseLong(contactSaveDTO.getCompany());
+        Company company = companyService.getCompany(companyId);
+        if(company == null){
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        contactService.addContact(contactSaveDTO, company);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
