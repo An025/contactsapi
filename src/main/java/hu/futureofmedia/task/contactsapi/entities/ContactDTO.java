@@ -3,6 +3,7 @@ package hu.futureofmedia.task.contactsapi.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ContactDTO {
+    private Long id;
     private String fullname;
     private CompanyDTO company;
     private String email;
@@ -11,11 +12,20 @@ public class ContactDTO {
     public ContactDTO() {
     }
 
-    public ContactDTO(String firstname, String lastname, String email, hu.futureofmedia.task.contactsapi.entities.CompanyDTO company, String telephonNumber) {
+    public ContactDTO(Long id, String firstname, String lastname, String email, hu.futureofmedia.task.contactsapi.entities.CompanyDTO company, String telephonNumber) {
+        this.id = id;
         this.fullname = firstname + " " + lastname;
         this.email = email;
         this.company = company;
         this.telephonNumber = telephonNumber;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTelephonNumber() {

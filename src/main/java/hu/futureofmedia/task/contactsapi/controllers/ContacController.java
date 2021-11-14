@@ -31,6 +31,12 @@ public class ContacController {
         return new ResponseEntity<>(contactService.getContacts(pageNo), HttpStatus.OK);
     }
 
+    //List selected contact
+    @GetMapping(path="contact/{contactId}")
+    public Contact getContact(@PathVariable("contactId") Long contactId){
+        return contactService.getSelectedContact(contactId);
+    }
+
     @PostMapping(path="contact")
     public ResponseEntity<Contact> addContact(@RequestBody Contact contact){
         return new ResponseEntity<>(contactService.addContact(contact), HttpStatus.OK);
