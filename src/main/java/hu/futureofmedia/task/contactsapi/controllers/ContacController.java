@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping(path="api/v1")
+@RequestMapping(path="api/v1/contacts")
 public class ContacController {
 
     private final ContactService contactService;
@@ -26,18 +26,18 @@ public class ContacController {
     }
 
     //List pageNo 10 active contacts
-    @GetMapping(path="contact")
+    @GetMapping(path="list")
     public ResponseEntity<Page<ContactDTO>> getContacts(@RequestParam(defaultValue = "0") Integer pageNo){
         return new ResponseEntity<>(contactService.getContacts(pageNo), HttpStatus.OK);
     }
 
     //List selected contact
-    @GetMapping(path="contact/{contactId}")
-    public Contact getContact(@PathVariable("contactId") Long contactId){
-        return contactService.getSelectedContact(contactId);
+    @GetMapping(path="list/{contactId}")
+    public ResponseEntity<Contact> getContact(@PathVariable("contactId") Long contactId){
+        return new ResponseEntity<>(contactService.getSelectedContact(contactId), HttpStatus.OK);
     }
 
-    @PostMapping(path="contact")
+    @PostMapping(path="add")
     public ResponseEntity<Contact> addContact(@RequestBody Contact contact){
         return new ResponseEntity<>(contactService.addContact(contact), HttpStatus.OK);
     }
