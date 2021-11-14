@@ -2,12 +2,15 @@ package hu.futureofmedia.task.contactsapi.service;
 
 import hu.futureofmedia.task.contactsapi.entities.*;
 
+import hu.futureofmedia.task.contactsapi.repositories.CompanyRepository;
 import hu.futureofmedia.task.contactsapi.repositories.ContactRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -65,5 +68,15 @@ public class ContactService {
         }else{
             throw new IllegalArgumentException("Not found contact: " + contactId);
         }
+    }
+
+    public ResponseEntity<String> deleteContact(Long contactId) {
+        boolean exists = contactRepository.existsById(contactId);
+        if(!exists){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Contact with id: " + contactId + "not found");
+        }
+        Contact contact = contactRepository.findById(contactId).get();
+        contact.setStatus(Status.DELETED);
+        return ResponseEntity.status(HttpStatus.RESET_CONTENT).body("Contact "+ contactId + " deleted");
     }
 }
