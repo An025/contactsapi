@@ -1,11 +1,9 @@
 package hu.futureofmedia.task.contactsapi.service;
 
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import hu.futureofmedia.task.contactsapi.entities.*;
 
 import hu.futureofmedia.task.contactsapi.repositories.ContactRepository;
+import hu.futureofmedia.task.contactsapi.validation.ContactValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
@@ -14,9 +12,9 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.Errors;
 
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -26,17 +24,17 @@ public class ContactService {
 
     public final ContactRepository contactRepository;
 
-    public ContactService(ContactRepository contactRepository){
+    public ContactService(ContactRepository contactRepository) {
         this.contactRepository = contactRepository;
     }
 
 
     public Page<ContactDTO> getContacts(Integer pageNo) {
         Pageable paging = PageRequest.of(pageNo, 10, Sort.by("lastname"));
-            Page<Contact> contactPage = contactRepository.findContactByStatus(Status.ACTIVE, paging);
+        Page<Contact> contactPage = contactRepository.findContactByStatus(Status.ACTIVE, paging);
 
-            return contactPage.map(this::convertContactToContactDto);
-        };
+        return contactPage.map(this::convertContactToContactDto);
+    }
 
 
     private ContactDTO convertContactToContactDto(final Contact contact) {
@@ -59,38 +57,18 @@ public class ContactService {
     }
 
 
-    public ResponseEntity<String> addContact(ContactSaveDTO contactSaveDTO, Company company){
+    public ResponseEntity<String> addContact(Errors errors, ContactSaveDTO contactSaveDTO, Company company) {
+        if(ContactValidation.isEmptyField(errors)){
+            return new ResponseEntity<>("Field(s) not empty", HttpStatus.FORBIDDEN);
+        };
         Contact contact = convertContactSaveDTOToContact(contactSaveDTO, company);
-        //Check email validation
-        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
-        boolean validEmail = patternMatches(contact.getEmail(),regex);
-        if(!validEmail){
-            return new ResponseEntity<>("Not valid email", HttpStatus.FORBIDDEN);
-        }
-        //Check phonenumber validation
-        if (contact.getTelephonenumber() != null){
-            boolean validPhoneNumber = checkPhoneNumber(contact.getTelephonenumber());
-            if(!validPhoneNumber){
-                return new ResponseEntity<>("Not a valid phonenumber", HttpStatus.FORBIDDEN);
-            }
+        String validContactMessage = ContactValidation.checkValidContact(contactSaveDTO, company, contact);
+        if (!validContactMessage.equals("Valid")) {
+            return new ResponseEntity<>(validContactMessage, HttpStatus.FORBIDDEN);
         }
         contact.setStatus(Status.ACTIVE);
         contactRepository.save(contact);
         return new ResponseEntity<>("Save contact to database", HttpStatus.ACCEPTED);
-    }
-
-    private boolean checkPhoneNumber(String telephonenumber) {
-        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-        try{
-            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(telephonenumber, "HU");
-            String formattedNumber = phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164);
-            if(!formattedNumber.equals(telephonenumber)){
-                return false;
-            }
-        } catch (NumberParseException e) {
-            System.err.println("NumberParseException was thrown: " + e.toString());
-        }
-        return true;
     }
 
 
@@ -106,15 +84,6 @@ public class ContactService {
     }
 
 
-    //Check Email validation
-    public static boolean patternMatches(String emailAddress, String regexPattern) {
-        return Pattern.compile(regexPattern)
-                .matcher(emailAddress)
-                .matches();
-    }
-
-
-
     public Contact getSelectedContact(Long contactId) {
         Optional<Contact> contactOptional = contactRepository.findById(contactId);
         if(contactOptional.isPresent()){
@@ -128,10 +97,11 @@ public class ContactService {
     public ResponseEntity<String> deleteContact(Long contactId) {
         boolean exists = contactRepository.existsById(contactId);
         if(!exists){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Contact with id: " + contactId + "not found");
+            return new ResponseEntity<>("Contact with id: " + contactId + "not found", HttpStatus.NOT_FOUND);
         }
-        Contact contact = contactRepository.findById(contactId).get();
+        Contact contact = contactRepository.findContactById(contactId);
         contact.setStatus(Status.DELETED);
-        return ResponseEntity.status(HttpStatus.RESET_CONTENT).body("Contact "+ contactId + " deleted");
+        contactRepository.save(contact);
+        return new ResponseEntity<>("Contact "+ contactId + " deleted", HttpStatus.RESET_CONTENT);
     }
 }

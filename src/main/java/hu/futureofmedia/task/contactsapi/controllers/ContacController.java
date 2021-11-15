@@ -6,6 +6,7 @@ import hu.futureofmedia.task.contactsapi.entities.ContactDTO;
 import hu.futureofmedia.task.contactsapi.entities.ContactSaveDTO;
 import hu.futureofmedia.task.contactsapi.service.CompanyService;
 import hu.futureofmedia.task.contactsapi.service.ContactService;
+import hu.futureofmedia.task.contactsapi.validation.ContactValidation;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,15 +59,12 @@ public class ContacController {
 
     @PostMapping(path="add")
     public ResponseEntity<String> addContact(@Valid @RequestBody ContactSaveDTO contactSaveDTO, Errors errors){
-        if(errors.hasErrors()){
-            return new ResponseEntity<>("Field(s) not empty",HttpStatus.FORBIDDEN);
-        }
 
         Long companyId = Long.parseLong(contactSaveDTO.getCompany());
         Company company = companyService.getCompany(companyId);
         if(company == null){
             return new ResponseEntity<>("Company doesn't exists",HttpStatus.FORBIDDEN);
         }
-        return contactService.addContact(contactSaveDTO, company);
+        return contactService.addContact(errors, contactSaveDTO, company);
     }
 }
