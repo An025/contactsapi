@@ -12,8 +12,8 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.Errors;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
@@ -23,9 +23,11 @@ public class ContactService {
     private Logger logger = LoggerFactory.getLogger(ContactService.class);
 
     public final ContactRepository contactRepository;
+    public final CompanyService companyService;
 
-    public ContactService(ContactRepository contactRepository) {
+    public ContactService(ContactRepository contactRepository, CompanyService companyService) {
         this.contactRepository = contactRepository;
+        this.companyService = companyService;
     }
 
 
@@ -49,6 +51,7 @@ public class ContactService {
         return contactDto;
     }
 
+
     private CompanyDTO convertCompanyToCompanyDTO(final Company company) {
         final CompanyDTO companyDTO = new CompanyDTO(
                 company.getName()
@@ -57,29 +60,14 @@ public class ContactService {
     }
 
 
-    public ResponseEntity<String> addContact(Errors errors, ContactSaveDTO contactSaveDTO, Company company) {
-        if(ContactValidation.isEmptyField(errors)){
-            return new ResponseEntity<>("Field(s) not empty", HttpStatus.FORBIDDEN);
-        };
-        Contact contact = convertContactSaveDTOToContact(contactSaveDTO, company);
-        String validContactMessage = ContactValidation.checkValidContact(contactSaveDTO, company, contact);
-        if (!validContactMessage.equals("Valid")) {
-            return new ResponseEntity<>(validContactMessage, HttpStatus.FORBIDDEN);
-        }
-        contact.setStatus(Status.ACTIVE);
-        contactRepository.save(contact);
-        return new ResponseEntity<>("Save contact to database", HttpStatus.ACCEPTED);
-    }
-
-
-    private Contact convertContactSaveDTOToContact(ContactSaveDTO contactSaveDTO, Company company) {
-        Contact contact = new Contact();
+    private Contact convertContactSaveDTOToContact(Contact contact, ContactSaveDTO contactSaveDTO, Company company) {
         contact.setLastname(contactSaveDTO.getLastname());
         contact.setFirstname(contactSaveDTO.getFirstname());
         contact.setEmail(contactSaveDTO.getEmail());
         contact.setTelephonenumber(contactSaveDTO.getTelephonenumber());
         contact.setComment(contactSaveDTO.getComment());
         contact.setCompany(company);
+        contact.setStatus(Status.ACTIVE);
         return contact;
     }
 
@@ -103,5 +91,34 @@ public class ContactService {
         contact.setStatus(Status.DELETED);
         contactRepository.save(contact);
         return new ResponseEntity<>("Contact "+ contactId + " deleted", HttpStatus.RESET_CONTENT);
+    }
+
+
+    public ResponseEntity<String> saveOrUpdateContact(ContactSaveDTO contactSaveDTO, Contact contact) {
+        String validMessage = ContactValidation.validContactData(contactSaveDTO);
+        if(!validMessage.equals("Valid")){
+            return new ResponseEntity<>(validMessage, HttpStatus.FORBIDDEN);
+        }
+        // Check contact is exists if exists Update data else create new contact
+        Company company = getCompanyFromContactSaveDTO(contactSaveDTO);
+        contact.setLastModified(LocalDateTime.now());
+        //Received contact(contactSaveDTO) convert contact
+        contact = convertContactSaveDTOToContact(contact, contactSaveDTO, company);
+        contactRepository.save(contact);
+        return new ResponseEntity<>("Create/Update contact to database", HttpStatus.ACCEPTED);
+    }
+
+
+    public Contact getExistsContact(ContactSaveDTO contactSaveDTO){
+        if(!contactRepository.existsById(contactSaveDTO.getId())){
+            return null;
+        }
+        return contactRepository.findContactById(contactSaveDTO.getId());
+    }
+
+
+    private Company getCompanyFromContactSaveDTO(ContactSaveDTO contactSaveDTO){
+        Long companyId = Long.parseLong(contactSaveDTO.getCompany());
+        return companyService.getCompany(companyId);
     }
 }

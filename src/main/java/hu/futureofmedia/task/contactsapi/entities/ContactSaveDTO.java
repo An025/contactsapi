@@ -1,29 +1,12 @@
 package hu.futureofmedia.task.contactsapi.entities;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-
-
 public class ContactSaveDTO {
     private Long id;
-
-    @NotEmpty(message = "Lastname may not be empty")
     private String lastname;
-
-    @NotEmpty(message = "Firstname may not be empty")
     private String firstname;
-
-//    @Email(message = "Email should be valid")
-    @NotEmpty(message = "Email may not be empty")
     private String email;
-
-    //TODO validaate phonenumber with Libphonenumber
     private String telephonenumber;
-
     private String comment;
-
-
-//    @NotEmpty(message = "Company may not be empty")
     private String company;
 
     public ContactSaveDTO() {
@@ -83,5 +66,18 @@ public class ContactSaveDTO {
 
     public void setCompany(String company) {
         this.company = company;
+    }
+
+    @Override
+    public String toString() {
+        return "ContactSaveDTO{" +
+                "id=" + id +
+                ", lastname='" + lastname + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", email='" + email + '\'' +
+                ", telephonenumber='" + telephonenumber + '\'' +
+                ", comment='" + comment + '\'' +
+                ", company='" + company + '\'' +
+                '}';
     }
 }

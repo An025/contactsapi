@@ -1,10 +1,7 @@
 package hu.futureofmedia.task.contactsapi.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sun.xml.bind.v2.TODO;
-
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -15,18 +12,10 @@ public class Contact {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "Lastname may not be empty")
     private String lastname;
-
-    @NotEmpty(message = "Firstname may not be empty")
     private String firstname;
-
-    @NotEmpty(message = "Email may not be empty")
     private String email;
-
-    //TODO validaate phonenumber with Libphonenumber
     private String telephonenumber;
-
     private String comment;
 
     @JoinColumn(name = "company_id", referencedColumnName = "id")
@@ -41,7 +30,6 @@ public class Contact {
 
     public Contact() {
         this.createDate = LocalDateTime.now();
-        this.lastModified = LocalDateTime.now();
     }
 
     public Contact(Long id,String lastname, String firstname, String email, String telephonenumber, String comment, Company company, Status status, LocalDateTime createDate, LocalDateTime lastModified) {
@@ -150,7 +138,14 @@ public class Contact {
     public String toString() {
         return "Contact{" +
                 "id=" + id +
-
+                ", lastname='" + lastname + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", email='" + email + '\'' +
+                ", telephonenumber='" + telephonenumber + '\'' +
+                ", comment='" + comment + '\'' +
+                ", status=" + status +
+                ", createDate=" + createDate +
+                ", lastModified=" + lastModified +
                 '}';
     }
 }
