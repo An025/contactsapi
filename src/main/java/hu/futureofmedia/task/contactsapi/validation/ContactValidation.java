@@ -9,12 +9,8 @@ import java.util.regex.Pattern;
 public  class ContactValidation {
 
     public static String validContactData(ContactSaveDTO contactSaveDTO) {
-        if (contactSaveDTO.getLastname() == null || contactSaveDTO.getFirstname() == null || contactSaveDTO.getEmail() == null
-                || contactSaveDTO.getCompany() == null) {
-            return "Field(s) can't be empty";
-        }
-        if (contactSaveDTO.getLastname().equals("") || contactSaveDTO.getFirstname().equals("") || contactSaveDTO.getEmail().equals("")
-                || contactSaveDTO.getCompany().equals("")) {
+        //Check field null or empty
+        if (isFieldNull(contactSaveDTO) || isEmptyField(contactSaveDTO)){
             return "Field(s) can't be empty";
         }
         //Check email validation
@@ -34,8 +30,19 @@ public  class ContactValidation {
     }
 
 
-    private static boolean checkPhoneNumber (String telephonenumber){
+    private static boolean isFieldNull (ContactSaveDTO contactSaveDTO) {
+        return (contactSaveDTO.getLastname() == null || contactSaveDTO.getFirstname() == null || contactSaveDTO.getEmail() == null
+                || contactSaveDTO.getCompany() == null);
+    }
 
+
+    private static boolean isEmptyField (ContactSaveDTO contactSaveDTO){
+        return contactSaveDTO.getLastname().equals("") || contactSaveDTO.getFirstname().equals("") || contactSaveDTO.getEmail().equals("")
+                || contactSaveDTO.getCompany().equals("");
+    }
+
+
+    private static boolean checkPhoneNumber (String telephonenumber){
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         try {
             Phonenumber.PhoneNumber number = phoneNumberUtil.parse(telephonenumber, "HU");
